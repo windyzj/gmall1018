@@ -6,6 +6,7 @@ import java.util.Date
 
 import com.alibaba.fastjson.JSON
 import com.atguigu.gmall1018.dw.common.constant.GmallConstant
+import com.atguigu.gmall1018.dw.common.util.MyEsUtil
 import com.atguigu.gmall1018.dw.realtime.bean.StartupLog
 import com.atguigu.gmall1018.dw.realtime.util.MyKafkaUtil
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -15,6 +16,8 @@ import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import redis.clients.jedis.Jedis
+
+import scala.collection.mutable.ListBuffer
 
 object StartUpLogApp {
 
@@ -58,6 +61,7 @@ object StartUpLogApp {
       val filterRdd: RDD[StartupLog] = rdd.filter { startupLog =>
         !dauBC.value.contains(startupLog.mid)
       }
+      val groupbyMidRdd: RDD[(String, Iterable[StartupLog])] = filterRdd.map(startupLog=>(startupLog.mid,startupLog)).groupByKey()
       println(s"过滤后= ${filterRdd.count()}")
 
       filterRdd
@@ -70,10 +74,15 @@ object StartUpLogApp {
     startuplogFilteredDstream.foreachRDD { rdd =>
        rdd.foreachPartition{startupLogItr=>
          val jedis: Jedis = new Jedis("hadoop1", 6379)
+         val listBuffer = new ListBuffer[StartupLog]
          for (startupLog <- startupLogItr ) {
            val key="dau:"+startupLog.logDate
            jedis.sadd(key,startupLog.mid)
+           listBuffer+=startupLog  //startupLogItr 只能循环使用一次 所以加入到buffer中
          }
+         //println(listBuffer.toList.mkString(","))
+          MyEsUtil.executeIndexBulk(GmallConstant.ES_INDEX_DAU,listBuffer.toList)  //保存到es中
+
          jedis.close()
        }
 

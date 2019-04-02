@@ -11,6 +11,8 @@
     <modules>
         <module>dw-common</module>
         <module>dw-realtime</module>
+        <module>dw-logger</module>
+        <module>dw-mock</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
