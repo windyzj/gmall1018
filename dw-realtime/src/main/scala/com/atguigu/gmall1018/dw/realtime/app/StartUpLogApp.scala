@@ -67,11 +67,11 @@ object StartUpLogApp {
       filterRdd
 
     }
-
-
+    val startupLogGroupbyMidDStream: DStream[(String, Iterable[StartupLog])] = startuplogFilteredDstream.map{startupLog=>(startupLog.mid,startupLog)}.groupByKey()
+   val distinctDStream: DStream[StartupLog] = startupLogGroupbyMidDStream.flatMap{case (mid,startLogItr)=>startLogItr.take(1) }
 
     //把当日访问用户写入redis
-    startuplogFilteredDstream.foreachRDD { rdd =>
+    distinctDStream.foreachRDD { rdd =>
        rdd.foreachPartition{startupLogItr=>
          val jedis: Jedis = new Jedis("hadoop1", 6379)
          val listBuffer = new ListBuffer[StartupLog]
@@ -80,8 +80,8 @@ object StartUpLogApp {
            jedis.sadd(key,startupLog.mid)
            listBuffer+=startupLog  //startupLogItr 只能循环使用一次 所以加入到buffer中
          }
-         //println(listBuffer.toList.mkString(","))
-          MyEsUtil.executeIndexBulk(GmallConstant.ES_INDEX_DAU,listBuffer.toList)  //保存到es中
+         println(listBuffer.toList.mkString("\n"))
+         //MyEsUtil.executeIndexBulk(GmallConstant.ES_INDEX_DAU,listBuffer.toList)  //保存到es中
 
          jedis.close()
        }
