@@ -123,7 +123,7 @@ public class JsonMocker {
      `vs` string COMMENT '版本号',
      `ts` bigint COMMENT '启动时间', ,
      `area` string COMMENT '城市' */
-        String mid = "mid_" + RandomNum.getRandInt(1, 3200);
+        String mid = "mid_" + RandomNum.getRandInt(5000, 5000);
         String uid = "" + RandomNum.getRandInt(1, 500);
         String os = osOptionGroup.getRandomOpt().getValue();
         String appid = this.appId;
