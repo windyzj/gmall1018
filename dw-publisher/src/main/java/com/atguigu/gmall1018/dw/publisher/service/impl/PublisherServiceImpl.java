@@ -187,7 +187,7 @@ public class PublisherServiceImpl implements PublisherService {
 
         System.out.println(searchSourceBuilder.toString());
 
-        Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(GmallConstant.ES_INDEX_ORDER).addType(GmallConstant.ES_DEFAULT_TYPE).build();
+        Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(GmallConstant.ES_INDEX_SALE).addType(GmallConstant.ES_DEFAULT_TYPE).build();
 
         try {
             SearchResult searchResult = jestClient.execute(search);
