@@ -14,6 +14,7 @@
         <module>dw-logger</module>
         <module>dw-mock</module>
         <module>dw-canal</module>
+        <module>dw-dw2es</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
